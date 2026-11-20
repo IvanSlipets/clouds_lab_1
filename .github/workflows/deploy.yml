@@ -40,3 +40,58 @@ jobs:
           NEW_TD=$(aws ecs register-task-definition --cli-input-json file://task-new.json --query 'taskDefinition.taskDefinitionArn' --output text)
           aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" --task-definition "$NEW_TD" >/dev/null
           aws ecs wait services-stable --cluster "$CLUSTER" --services "$SERVICE"
+
+      - name: Register new worker task revision and update ECS
+        if: ${{ vars.ECS_WORKER_SERVICE_NAME != '' }}
+        env:
+          CLUSTER: ${{ vars.ECS_CLUSTER_NAME }}
+          SERVICE: ${{ vars.ECS_WORKER_SERVICE_NAME }}
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ vars.ECR_REPOSITORY_NAME }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          TD_ARN=$(aws ecs describe-services \
+            --cluster "$CLUSTER" \
+            --services "$SERVICE" \
+            --query 'services[0].taskDefinition' \
+            --output text)
+
+          aws ecs describe-task-definition \
+            --task-definition "$TD_ARN" \
+            --query taskDefinition > worker-task.json
+
+          jq --arg IMG "$REGISTRY/$REPOSITORY:$IMAGE_TAG" \
+            'del(
+              .taskDefinitionArn,
+              .revision,
+              .status,
+              .requiresAttributes,
+              .compatibilities,
+              .registeredAt,
+              .registeredBy,
+              .deregisteredAt
+            )
+            | .containerDefinitions |= map(
+                if .name == "worker"
+                then .image = $IMG
+                else .
+                end
+              )' \
+            worker-task.json > worker-task-new.json
+
+          NEW_TD=$(aws ecs register-task-definition \
+            --cli-input-json file://worker-task-new.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          aws ecs update-service \
+            --cluster "$CLUSTER" \
+            --service "$SERVICE" \
+            --task-definition "$NEW_TD" >/dev/null
+
+          aws ecs wait services-stable \
+            --cluster "$CLUSTER" \
+            --services "$SERVICE"
+

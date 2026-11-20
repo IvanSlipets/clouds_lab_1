@@ -1,6 +1,8 @@
+# Sports Nutrition API — AWS Flask / Terraform
+
 Контейнеризований REST API застосунок на Flask, розгорнутий у хмарі AWS з використанням Docker, Terraform та CI/CD.
 
-**Public Address:**
+**Публічна адреса останнього розгортання (може змінитися після `terraform destroy` / `apply`):**
 `http://clouds-lab-alb-132014376.eu-north-1.elb.amazonaws.com`
 
 **Health:**
@@ -11,79 +13,42 @@
 
 ```text
 bd_lab_4/
-│
-├── .github/
-│   └── workflows/
-│       └── deploy.yml               # CI/CD: GitHub Actions → ECR → ECS
-│
-├── db/
-│   └── 01_schema.sql                # SQL-схема локальної MySQL
-│
+├── .github/workflows/deploy.yml        # CI/CD GitHub Actions
+├── app.py                               # Flask application factory
+├── compose.yaml                        # Локальний Flask + MySQL
+├── Dockerfile                           # Контейнер API
+├── db/01_schema.sql                     # SQL-схема
 ├── project/
-│   ├── config/
-│   │   └── app.yml                  # Конфігурація Flask-застосунку
-│   │
+│   ├── config/app.yml
 │   └── my_project/
-│       ├── __init__.py
-│       │
 │       ├── auth/
-│       │   ├── dao/                 # Доступ до бази даних
-│       │   │   ├── athlete_dao.py
-│       │   │   ├── competition_dao.py
-│       │   │   ├── procedure_dao.py
-│       │   │   └── sport_dao.py
-│       │   │
-│       │   ├── domain/              # Моделі SQLAlchemy та DTO
-│       │   │   ├── athlete.py
-│       │   │   ├── athlete_dto.py
-│       │   │   ├── competition.py
-│       │   │   ├── competition_dto.py
-│       │   │   ├── procedure_dto.py
-│       │   │   ├── sport.py
-│       │   │   └── sport_dto.py
-│       │   │
-│       │   ├── route/               # REST API та JWT-автентифікація
-│       │   │   ├── athlete_route.py
-│       │   │   ├── auth_route.py
-│       │   │   ├── competition_route.py
-│       │   │   ├── procedure_route.py
-│       │   │   └── sport_route.py
-│       │   │
-│       │   └── service/             # Бізнес-логіка застосунку
-│       │       ├── athlete_service.py
-│       │       ├── competition_service.py
-│       │       ├── procedure_service.py
-│       │       └── sport_service.py
-│       │
+│       │   ├── dao/                     # Робота з даними
+│       │   ├── domain/                  # Моделі і DTO
+│       │   ├── route/                   # HTTP маршрути, JWT
+│       │   └── service/                 # Бізнес-логіка
 │       └── utils/
-│           └── db_init.py           # Ініціалізація Flask-SQLAlchemy
-│
-├── terraform/                       # Інфраструктура AWS (IaC)
-│   ├── .terraform.lock.hcl          # Зафіксовані версії провайдерів
-│   ├── alb.tf                       # Application Load Balancer
-│   ├── database.tf                  # Amazon RDS MySQL
-│   ├── ecr.tf                       # Elastic Container Registry
-│   ├── ecs.tf                       # ECS Fargate, задачі та сервіси
-│   ├── github.tf                    # GitHub OIDC та IAM-роль CI/CD
-│   ├── iam.tf                       # IAM-ролі та політики доступу
-│   ├── monitoring.tf                # CloudWatch, SNS та AWS Budget
-│   ├── network.tf                   # VPC, Subnets, NAT Gateway, Routes
-│   ├── outputs.tf                   # Адреси та ідентифікатори AWS
-│   ├── secrets.tf                   # AWS Secrets Manager
-│   ├── security.tf                  # Security Groups і правила доступу
-│   ├── terraform.tfvars.example     # Приклад параметрів AWS
-│   ├── variables.tf                 # Вхідні змінні Terraform
-│   └── versions.tf                  # Версії Terraform та провайдерів
-│
-├── .dockerignore                    # Файли, виключені з Docker-образу
-├── .env.example                     # Приклад змінних середовища
-├── .gitignore                       # Файли, виключені з Git
-├── app.py                           # Flask Application Factory
-├── compose.yaml                     # Локальні контейнери API + MySQL
-├── Dockerfile                       # Docker-образ Flask API
-├── README.md                        # Документація проєкту
-├── requirements.txt                 # Python-залежності
-└── test.http                        # Тестові HTTP-запити до API
+│           ├── db_init.py
+│           └── sports_cache.py          # Cache-aside
+├── terraform/
+│   ├── autoscaling.tf                   # ECS 1–3 Tasks, CPU target 60%
+│   ├── monitoring.tf                    # CloudWatch dashboard, SNS alerts
+│   ├── ecs.tf                           # ECS Fargate
+│   ├── alb.tf                           # Application Load Balancer
+│   ├── database.tf                      # Amazon RDS MySQL
+│   └── ...                              # Мережі, IAM, ECR, secrets, GitHub
+├── loadtest/
+│   ├── loadtest.js                      # Сценарій k6
+│   └── results/
+│       ├── baseline.json
+│       └── with_cache.json
+├── docs/
+│   ├── AUTOSCALING.md
+│   ├── LOADTEST.md
+│   ├── ALERTS.md
+│   ├── CACHE.md
+│   └── *.png                            # Знімки k6 / CloudWatch / SNS
+├── requirements.txt
+└── README.md
 ```
 
 ### Організація застосунку
@@ -116,3 +81,28 @@ Terraform керує створенням таких компонентів:
 Файли `.env`, `terraform.tfvars`, Terraform state, плани розгортання та каталог `.terraform/` не включаються до Git-репозиторію. Вони містять локальні конфігурації, конфіденційні дані або автоматично згенеровані файли.
 
 Поточний публічний ALB використовує HTTP для лабораторної демонстрації; для передавання облікових даних і JWT через інтернет необхідно налаштувати HTTPS.
+
+## Лабораторна робота №2 — масштабування, моніторинг та кешування
+
+Реалізовані обов'язкові завдання:
+
+- **Auto Scaling:** ECS Fargate від 1 до 3 Tasks, CPU target tracking 60%, cooldown 60/180 с (`terraform/autoscaling.tf`).
+- **Навантажувальний сценарій:** Grafana k6, 20 VU, 10 хв (3 хв наростання, 5 хв сталого навантаження, 2 хв спад); у кожній ітерації 1 POST та 9 GET (`loadtest/loadtest.js`).
+- **Моніторинг:** CloudWatch dashboard з п'ятьма графіками (`terraform/monitoring.tf`).
+- **Сповіщення:** SNS email при CPU > 70% протягом двох хвилин і поверненні до норми (`terraform/monitoring.tf`).
+- **Кеш:** локальний cache-aside для `GET /api/sports/`, TTL 45 секунд, заголовок `X-Cache`, інвалідація при зміні видів спорту.
+
+### Результати порівняння
+
+| Показник | Без кешу | З кешем |
+|---|---:|---:|
+| HTTP-запити | 19 511 | 21 781 |
+| RPS | 32,41 | 36,07 |
+| p50 | 313,91 мс | 134,73 мс |
+| p95 | 903,39 мс | 1107,07 мс |
+| p99 | 1282,20 мс | 1726,13 мс |
+| HTTP-помилки | 0% | 0% |
+
+Під час тестів кількість ECS Tasks зростала **1 → 3** і поверталася до **1**. Для кешованого маршруту частка влучань становила **80,87%**. Кеш покращив типову затримку й RPS, але p95/p99 погіршилися.
+
+Повна документація: [AUTOSCALING](docs/AUTOSCALING.md), [LOADTEST](docs/LOADTEST.md), [ALERTS](docs/ALERTS.md), [CACHE](docs/CACHE.md).

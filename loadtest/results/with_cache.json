@@ -1,0 +1,161 @@
+{
+    "metrics": {
+        "http_req_sending": {
+            "p(95)": 0,
+            "p(99)": 0.10160000000000037,
+            "max": 1.2291,
+            "avg": 0.0056916716404205505,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0
+        },
+        "http_req_receiving": {
+            "p(99)": 1531.8486800000007,
+            "max": 4044.1327,
+            "avg": 193.88836826132882,
+            "min": 0,
+            "med": 0.5698,
+            "p(90)": 660.0581,
+            "p(95)": 910.3473
+        },
+        "http_reqs": {
+            "count": 21781,
+            "rate": 36.071960613861386
+        },
+        "vus": {
+            "value": 1,
+            "min": 1,
+            "max": 20
+        },
+        "sports_cache_hit_rate": {
+            "passes": 7045,
+            "fails": 1667,
+            "value": 0.8086547291092746
+        },
+        "iterations": {
+            "count": 2178,
+            "rate": 3.607030449336123
+        },
+        "http_req_waiting": {
+            "avg": 125.55572230384229,
+            "min": 42.4329,
+            "med": 72.8096,
+            "p(90)": 289.9508,
+            "p(95)": 381.0854,
+            "p(99)": 589.3396800000002,
+            "max": 1778.9418
+        },
+        "sports_list_db_reads": {
+            "count": 1667,
+            "rate": 2.760752873757262
+        },
+        "http_req_duration{expected_response:true}": {
+            "med": 134.7301,
+            "p(90)": 850.8269,
+            "p(95)": 1107.0692,
+            "p(99)": 1726.1304400000001,
+            "max": 4285.5477,
+            "avg": 319.4497822368094,
+            "min": 43.5579
+        },
+        "checks": {
+            "passes": 21780,
+            "fails": 0,
+            "thresholds": {
+                "rate>0.95": false
+            },
+            "value": 1
+        },
+        "http_req_blocked": {
+            "avg": 0.05818044626050221,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0.006140000000000146,
+            "max": 139.25
+        },
+        "data_sent": {
+            "count": 3742276,
+            "rate": 6197.660000835533
+        },
+        "http_req_connecting": {
+            "p(95)": 0,
+            "p(99)": 0,
+            "max": 120.5981,
+            "avg": 0.05245127404618705,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0
+        },
+        "http_req_tls_handshaking": {
+            "min": 0,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "max": 0,
+            "avg": 0
+        },
+        "vus_max": {
+            "value": 20,
+            "min": 20,
+            "max": 20
+        },
+        "iteration_duration": {
+            "min": 1479.4501,
+            "med": 4166.0706,
+            "p(90)": 6505.022239999999,
+            "p(95)": 7312.834425,
+            "p(99)": 9021.865255000002,
+            "max": 11983.2234,
+            "avg": 4197.373434756662
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 21781,
+            "thresholds": {
+                "rate<0.05": false
+            },
+            "value": 0
+        },
+        "data_received": {
+            "count": 863270030,
+            "rate": 1429679.1938518404
+        },
+        "http_req_duration": {
+            "p(90)": 850.8269,
+            "p(95)": 1107.0692,
+            "p(99)": 1726.1304400000001,
+            "max": 4285.5477,
+            "avg": 319.4497822368094,
+            "min": 43.5579,
+            "med": 134.7301
+        }
+    },
+    "setup_data": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc5NDk0NDc4OSwianRpIjoiYTUyOTc2MTYtY2IyZi00OWM2LWIxYWEtNjZmN2U4M2YzOThmIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImFkbWluIiwibmJmIjoxNzk0OTQ0Nzg5LCJjc3JmIjoiMjA5Y2QwNzctNWY1Yi00MzYyLTg1OWUtZWIxMzlhYTU2YTQwIiwiZXhwIjoxNzk0OTQ2NTg5fQ.P2cPItxMG0lVj3hG2O3Voru1hfVAJf12jqgpG_oRMnI"
+    },
+    "root_group": {
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+            "sport created (201)": {
+                "name": "sport created (201)",
+                "path": "::sport created (201)",
+                "id": "7e4399b552c62235a80499a0106bdf75",
+                "passes": 2178,
+                "fails": 0
+            },
+            "read returned 200": {
+                "name": "read returned 200",
+                "path": "::read returned 200",
+                "id": "c86ceb8294ac43715d5819033168aeaf",
+                "passes": 19602,
+                "fails": 0
+            }
+        },
+        "name": "",
+        "path": ""
+    }
+}

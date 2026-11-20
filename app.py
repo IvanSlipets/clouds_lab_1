@@ -6,6 +6,7 @@ from flask import Flask, request, jsonify
 from flask_jwt_extended import JWTManager, verify_jwt_in_request
 from ruamel.yaml import YAML
 from sqlalchemy.engine import URL
+from project.my_project.auth.route.job_route import jobs_bp
 
 
 project_root = os.path.join(
@@ -44,6 +45,21 @@ def create_app():
 
     app.config['SECRET_KEY'] = os.environ['FLASK_SECRET_KEY']
     app.config['DEBUG'] = False
+
+
+    # Налаштування кешування списку видів спорту
+    app.config['SPORTS_CACHE_ENABLED'] = (
+        os.getenv('SPORTS_CACHE_ENABLED', 'true').lower()
+        == 'true'
+    )
+    app.config['SPORTS_CACHE_TTL'] = int(
+        os.getenv('SPORTS_CACHE_TTL', '45')
+    )
+    app.config['IDEMPOTENCY_REDIS_URL'] = os.getenv(
+    'IDEMPOTENCY_REDIS_URL',
+    'redis://redis:6379/0'
+    )
+
 
     app.config['JWT_SECRET_KEY'] = os.environ['JWT_SECRET_KEY']
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30)
@@ -97,6 +113,10 @@ def create_app():
 
     app.register_blueprint(
         auth_bp, url_prefix='/api/auth'
+    )
+
+    app.register_blueprint(
+        jobs_bp, url_prefix='/api/jobs'
     )
 
     # Захист усіх запитів, які змінюють дані

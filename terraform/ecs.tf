@@ -6,6 +6,13 @@ resource "aws_cloudwatch_log_group" "api" {
 
 resource "aws_ecs_cluster" "main" {
   name = "${local.name}-cluster"
+
+  # Basic Container Insights (not enhanced) provides Desired/RunningTaskCount.
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
+
   tags = local.tags
 }
 
@@ -37,6 +44,11 @@ resource "aws_ecs_task_definition" "api" {
         { name = "DB_USER", value = var.db_username },
         { name = "INIT_DB_SCHEMA", value = "true" },
         { name = "API_ADMIN_USERNAME", value = "admin" },
+        { name = "IDEMPOTENCY_REDIS_URL", value = "rediss://${aws_elasticache_replication_group.idempotency.primary_endpoint_address}:6379/0" },
+        { name = "SQS_QUEUE_URL", value = aws_sqs_queue.jobs.url },
+        { name = "AWS_REGION", value = var.aws_region
+        },
+
       ]
       secrets = [
         {
@@ -99,7 +111,7 @@ resource "aws_ecs_service" "api" {
   }
 
   lifecycle {
-    ignore_changes = [task_definition]
+    ignore_changes = [task_definition, desired_count]
   }
 
   depends_on = [aws_lb_listener.http, aws_route.nat, aws_route_table_association.private]

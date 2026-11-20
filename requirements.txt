@@ -6,3 +6,5 @@ ruamel.yaml
 cryptography
 gunicorn>=23,<24
 Flask-JWT-Extended==4.7.4
+redis>=5,<7
+boto3>=1.35,<2

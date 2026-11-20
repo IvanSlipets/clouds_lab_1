@@ -66,12 +66,21 @@ data "aws_iam_policy_document" "github_deploy" {
       "ecs:UpdateService",
       "ecs:DescribeServices"
     ]
-    resources = [aws_ecs_service.api.arn]
+
+    resources = [
+      aws_ecs_service.api.arn,
+      aws_ecs_service.worker.arn
+    ]
   }
 
   statement {
-    actions   = ["iam:PassRole"]
-    resources = [aws_iam_role.execution.arn, aws_iam_role.task.arn]
+    actions = ["iam:PassRole"]
+
+    resources = [
+      aws_iam_role.execution.arn,
+      aws_iam_role.task.arn,
+      aws_iam_role.worker.arn
+    ]
 
     condition {
       test     = "StringEquals"

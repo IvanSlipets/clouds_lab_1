@@ -1,6 +1,13 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from project.my_project.auth.service.sport_service import SportService
 from project.my_project.auth.domain.sport_dto import SportDTO, SportWithAthletesDTO
+from project.my_project.utils.idempotency import idempotent
+
+from project.my_project.utils.sports_cache import (
+    get_cached_sports,
+    invalidate_sports_cache
+)
+
 
 sport_bp = Blueprint('sport', __name__)
 sport_service = SportService()
@@ -11,8 +18,22 @@ sport_with_athletes_dto = SportWithAthletesDTO()
 # GET: Вивід усіх видів спорту
 @sport_bp.route('/', methods=['GET'])
 def get_all_sports():
-    sports = sport_service.get_all_sports()
-    return jsonify(sports_dto.dump(sports)), 200
+
+    def load_from_database():
+        sports = sport_service.get_all_sports()
+        return sports_dto.dump(sports)
+
+    data, cache_status = get_cached_sports(
+        loader=load_from_database,
+        enabled=current_app.config['SPORTS_CACHE_ENABLED'],
+        ttl=current_app.config['SPORTS_CACHE_TTL']
+    )
+
+    response = jsonify(data)
+    response.headers['X-Cache'] = cache_status
+
+    return response, 200
+
 
 # GET: Вивід виду спорту за ID
 @sport_bp.route('/<int:sport_id>', methods=['GET'])
@@ -32,13 +53,20 @@ def get_sport_with_athletes(sport_id):
 
 # POST: Створення
 @sport_bp.route('/', methods=['POST'])
+@idempotent
 def create_sport():
     try:
         sport_data = sport_dto.load(request.json)
     except Exception as e:
-        return jsonify({'message': 'Invalid data', 'errors': str(e)}), 400
+        return jsonify({
+            'message': 'Invalid data',
+            'errors': str(e)
+        }), 400
 
     new_sport = sport_service.create_sport(sport_data)
+
+    invalidate_sports_cache()
+
     return jsonify(sport_dto.dump(new_sport)), 201
 
 # PUT: Оновлення даних
@@ -51,6 +79,7 @@ def update_sport(sport_id):
 
     updated_sport = sport_service.update_sport(sport_id, update_data)
     if updated_sport:
+        invalidate_sports_cache()
         return jsonify(sport_dto.dump(updated_sport)), 200
     return jsonify({'message': 'Sport not found'}), 404
 
@@ -58,5 +87,6 @@ def update_sport(sport_id):
 @sport_bp.route('/<int:sport_id>', methods=['DELETE'])
 def delete_sport(sport_id):
     if sport_service.delete_sport(sport_id):
+        invalidate_sports_cache()
         return jsonify({'message': f'Sport with ID {sport_id} deleted'}), 204
     return jsonify({'message': 'Sport not found'}), 404

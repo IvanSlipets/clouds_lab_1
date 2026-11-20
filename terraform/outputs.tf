@@ -30,3 +30,19 @@ output "dashboard_name" {
 output "github_oidc_role_arn" {
   value = aws_iam_role.github.arn
 }
+
+output "worker_service_name" {
+  value = aws_ecs_service.worker.name
+}
+
+output "sqs_queue_url" {
+  value = aws_sqs_queue.jobs.url
+}
+
+output "api_task_definition_arn" {
+  value = aws_ecs_task_definition.api.arn
+}
+
+output "worker_task_definition_arn" {
+  value = aws_ecs_task_definition.worker.arn
+}

@@ -16,9 +16,22 @@ services:
       API_ADMIN_PASSWORD: ${API_ADMIN_PASSWORD:?Set API_ADMIN_PASSWORD}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY}
 
+      INIT_DB_SCHEMA: "true"
+      IDEMPOTENCY_REDIS_URL: redis://redis:6379/0
+
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   db:
     image: mysql:8.4
